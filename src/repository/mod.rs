@@ -1,3 +1,4 @@
+mod save_block;
 mod save_txs;
 
 /// Repository is responsible for saving data in the database.

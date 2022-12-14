@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
       args:
         - DSN=posrgres://user:password@db:5432/ethereum
-        - RPC_URL=https://rpc.ankr.com/eth
+        - RPC_URL=wss://main-light.eth.linkpool.io/ws
 
   db:
     image: postgres

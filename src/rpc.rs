@@ -1,10 +1,10 @@
-use web3::{Web3, transports::Http};
+use web3::{transports::WebSocket, Web3};
 
-pub type RPC = Web3<Http>;
+pub type RPC = Web3<WebSocket>;
 
 pub async fn connect(rpc_url: &str) -> Result<RPC, &'static str> {
-    let transport = Http::new(rpc_url).unwrap();
+    let transport = WebSocket::new(rpc_url).await.unwrap();
     let web3 = Web3::new(transport);
 
-    return Ok(web3);
+    Ok(web3)
 }

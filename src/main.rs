@@ -66,10 +66,19 @@ async fn main() {
 
     let service = Service::new(db, rpc, args.verbose);
 
-    tokio::spawn(async move {
-        service.fetch(args.from, args.to).await.unwrap();
-    });
-    log::info!("[OK] Fetcher started");
+    if args.fetch {
+        tokio::spawn(async move {
+            service.fetch(args.from, args.to).await.unwrap();
+        });
+        log::info!("[OK] Fetcher started");
+    }
+
+    if args.subscribe {
+        tokio::spawn(async move {
+            service.subscribe().await.unwrap();
+        });
+        log::info!("[OK] Subscriber started");
+    }
 
     tokio::signal::ctrl_c().await.unwrap();
 }

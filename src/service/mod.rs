@@ -1,4 +1,5 @@
 mod fetch;
+mod process;
 mod subscribe;
 
 use crate::db::DB;
