@@ -78,7 +78,7 @@ impl Service {
 
         let mut tx = self.db.begin().await.unwrap();
 
-        self.repo.save_txs(&mut tx, transactions);
+        self.repo.save_txs(&mut tx, transactions).await.unwrap();
 
         tx.commit().await.unwrap();
     }
