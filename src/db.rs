@@ -24,7 +24,7 @@ pub async fn migrate(db: &DB) -> Result<(), &'static str> {
     match sqlx::migrate!("./migrations").run(db).await {
         Ok(_) => Ok(()),
         Err(err) => {
-            error!("kernel.migrate: migrating: {}", &err);
+            error!("db.migrate: migrating: {}", &err);
             Err(err)
         }
     }

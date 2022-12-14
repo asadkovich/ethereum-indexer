@@ -5,6 +5,8 @@ use crate::db::DB;
 use crate::repository::Repository;
 use crate::rpc::RPC;
 
+/// Service is responsible for fetching historical blocks
+/// and subscribing to new blocks.
 #[derive(Debug)]
 pub struct Service {
     repo: Repository,

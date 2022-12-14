@@ -4,7 +4,7 @@ use std::thread;
 use web3::types::{Block, BlockId, BlockNumber, Transaction, U64};
 
 impl Service {
-    /// fetch reads blockchain from top to bottom and stores data in the database.
+    /// Reads blockchain from top to bottom and stores data in the database.
     pub async fn fetch(
         &self,
         from_block: Option<i64>,

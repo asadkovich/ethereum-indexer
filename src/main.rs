@@ -31,12 +31,12 @@ struct Args {
     #[arg(long, short, default_value_t = false)]
     migrate: bool,
 
-    /// Specifies the starting block number
+    /// Specifies the starting block number.
     /// If not specified, the fetcher will start from the latest block.
     #[arg(long)]
     from: Option<i64>,
 
-    /// Specifies the ending block number
+    /// Specifies the ending block number.
     /// If not specified, the fetcher will fetch all the way to the genesis block
     /// (which is block number 0).
     #[arg(long)]
@@ -61,6 +61,7 @@ async fn main() {
 
     if args.migrate {
         db::migrate(&db).await.unwrap();
+        log::info!("[OK] Migrations completed");
     }
 
     let service = Service::new(db, rpc, args.verbose);
@@ -68,6 +69,7 @@ async fn main() {
     tokio::spawn(async move {
         service.fetch(args.from, args.to).await.unwrap();
     });
+    log::info!("[OK] Fetcher started");
 
     tokio::signal::ctrl_c().await.unwrap();
 }
