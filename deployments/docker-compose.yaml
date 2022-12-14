@@ -1,0 +1,23 @@
+version: '3'
+services:
+  indexer:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+      args:
+        - DSN=posrgres://user:password@db:5432/ethereum
+        - RPC_URL=https://rpc.ankr.com/eth
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ethereum
+    volumes:
+      - db-data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+
+volumes:
+  db-data:
