@@ -1,7 +1,6 @@
-use crate::db::DB;
+mod save_txs;
 
 #[derive(Debug, Clone)]
-
 pub struct Repository {}
 
 impl Repository {

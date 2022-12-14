@@ -2,6 +2,7 @@ mod db;
 mod service;
 mod repository;
 mod rpc;
+mod entities;
 
 use clap::Parser;
 
