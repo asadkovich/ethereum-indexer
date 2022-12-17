@@ -50,9 +50,9 @@ struct Args {
     #[arg(long, short, default_value_t = true)]
     verbose: bool,
 
-    /// Database pool size limit (default is 0, which means there is no limit)
+    /// Database pool size limit.
     /// This is useful when you want to limit the number of connections to the database.
-    #[arg(long, default_value_t = 0)]
+    #[arg(long, default_value_t = 30)]
     pool_size: u32,
 }
 
