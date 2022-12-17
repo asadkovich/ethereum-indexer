@@ -5,8 +5,8 @@ services:
       context: ../
       dockerfile: Dockerfile
       args:
-        - DSN=posrgres://user:password@db:5432/ethereum
-        - RPC_URL=wss://main-light.eth.linkpool.io/ws
+        - DSN=postgres://user:password@db:5432/ethereum?sslmode=disable
+        - RPC_URL=${RPC_URL}
 
   db:
     image: postgres
