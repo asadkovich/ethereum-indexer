@@ -3,10 +3,23 @@ use sqlx;
 #[derive(sqlx::FromRow, Debug, Clone)]
 pub struct Block {
     pub hash: String,
-    pub number: u64,
     pub parent_hash: String,
-    pub timestamp: u64,
-    pub transactions: Vec<String>,
+    pub number: i64,
+    pub timestamp: i64,
+    pub nonce: String,
+    pub difficulty: String,
+    pub gas_limit: i64,
+    pub gas_used: i64,
+    pub miner: String,
+    pub extra_data: String,
+    pub logs_bloom: String,
+    pub transactions_root: String,
+    pub state_root: String,
+    pub receipts_root: String,
+    pub sha3_uncles: Vec<String>,
+    pub size: i64,
+    pub total_difficulty: String,
+    pub uncles: String,
 }
 
 #[derive(sqlx::FromRow, Debug, Clone)]

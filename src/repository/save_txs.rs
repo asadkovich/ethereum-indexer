@@ -1,20 +1,22 @@
-use sqlx::QueryBuilder;
 use crate::db;
 use crate::entities::Transaction;
 use crate::repository::Repository;
+use sqlx::QueryBuilder;
 
 impl Repository {
     /// save_txs saves transactions in the database.
     pub async fn save_txs<'c, C: db::Querier<'c>>(
         &self,
         db: C,
-        txs: Vec<Transaction>
-    ) -> Result<(), &'static str> {
-        let mut builder = QueryBuilder::new("
+        txs: Vec<Transaction>,
+    ) -> Result<(), crate::Error> {
+        let mut builder = QueryBuilder::new(
+            "
                 INSERT INTO transactions (
                     hash, block_hash, block_number, from, to, value, gas, gas_price,
                     input, nonce, transaction_index, v, r, s
-                ) ");
+                ) ",
+        );
 
         builder.push_values(txs, |mut b, tx| {
             b.push_bind(tx.hash);
@@ -36,7 +38,7 @@ impl Repository {
         builder.push("ON CONFLICT (hash) DO NOTHING");
 
         let query = builder.build();
-        query.execute(db).await.unwrap();
+        query.execute(db).await?;
 
         Ok(())
     }

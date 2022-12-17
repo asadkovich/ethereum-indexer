@@ -1,7 +1,22 @@
+use crate::db::DB;
+use crate::repository::Repository;
 use crate::{entities, Service};
+use std::sync::Arc;
 use web3::types::{Block, Transaction};
 
-impl Service {
+#[derive(Debug)]
+pub struct BlockProcessor {
+    db: Arc<DB>,
+    repo: Repository,
+}
+
+impl BlockProcessor {
+    pub fn new(db: Arc<DB>) -> Self {
+        let repo = Repository::new();
+
+        BlockProcessor { db, repo }
+    }
+
     pub async fn process_block(&self, block: Block<Transaction>) {
         let block_hash = block.hash.unwrap();
         let block_number = block.number.unwrap().as_u64();
@@ -31,19 +46,31 @@ impl Service {
             transactions.push(transaction);
         }
 
-        let tx_hashes: Vec<String> = transactions.iter().map(|tx| tx.hash.clone()).collect();
-
         let block = entities::Block {
             hash: block_hash.to_string(),
-            number: block_number,
             parent_hash,
-            timestamp,
-            transactions: tx_hashes,
+            number: block_number as i64,
+            timestamp: timestamp as i64,
+            nonce: block.nonce.unwrap().to_string(),
+            difficulty: block.difficulty.to_string(),
+            gas_limit: block.gas_limit.as_u64() as i64,
+            gas_used: block.gas_used.as_u64() as i64,
+            miner: block.author.to_string(),
+            extra_data: serde_json::to_string(&block.extra_data).unwrap(),
+            logs_bloom: serde_json::to_string(&block.logs_bloom).unwrap(),
+            transactions_root: block.transactions_root.to_string(),
+            state_root: block.state_root.to_string(),
+            receipts_root: block.receipts_root.to_string(),
+            sha3_uncles: block.uncles.iter().map(|u| u.to_string()).collect(),
+            size: block.size.unwrap().as_u64() as i64,
+            total_difficulty: block.total_difficulty.unwrap().to_string(),
+            uncles: serde_json::to_string(&block.uncles).unwrap(),
         };
 
         let mut tx = self.db.begin().await.unwrap();
 
         self.repo.save_txs(&mut tx, transactions).await.unwrap();
+        self.repo.save_block(&mut tx, block).await.unwrap();
 
         tx.commit().await.unwrap();
     }

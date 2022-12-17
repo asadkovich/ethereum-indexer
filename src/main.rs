@@ -1,8 +1,12 @@
 mod db;
 mod entities;
+mod errors;
 mod repository;
 mod rpc;
 mod service;
+
+pub use errors::Error;
+use std::sync::Arc;
 
 use crate::service::Service;
 use clap::Parser;
@@ -64,19 +68,15 @@ async fn main() {
         log::info!("[OK] Migrations completed");
     }
 
-    let service = Service::new(db, rpc, args.verbose);
+    let mut service = Service::new(Arc::new(db), Arc::new(rpc));
 
     if args.fetch {
-        tokio::spawn(async move {
-            service.fetch(args.from, args.to).await.unwrap();
-        });
+        service.start_fetching(args.from, args.to);
         log::info!("[OK] Fetcher started");
     }
 
     if args.subscribe {
-        tokio::spawn(async move {
-            service.subscribe().await.unwrap();
-        });
+        service.start_subscribing();
         log::info!("[OK] Subscriber started");
     }
 
