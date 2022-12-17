@@ -1,11 +1,13 @@
 mod db;
 mod entities;
 mod errors;
+mod metrics;
 mod repository;
 mod rpc;
 mod service;
 
 pub use errors::Error;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use crate::service::Service;
@@ -54,6 +56,14 @@ struct Args {
     /// This is useful when you want to limit the number of connections to the database.
     #[arg(long, default_value_t = 30)]
     pool_size: u32,
+
+    /// Enables or disables metrics (true by default).
+    #[arg(long, default_value_t = true)]
+    metrics: bool,
+
+    /// Specifies the metrics port (:9090 by default).
+    #[arg(long, default_value = ":9090")]
+    metrics_addr: String,
 }
 
 #[tokio::main]
@@ -66,6 +76,12 @@ async fn main() {
     if args.migrate {
         db::migrate(&db).await.unwrap();
         log::info!("[OK] Migrations completed");
+    }
+
+    if args.metrics {
+        let metrics_addr =
+            std::net::SocketAddr::from_str(&args.metrics_addr).expect("Invalid metrics address");
+        metrics::start_prometheus_server(metrics_addr);
     }
 
     let mut service = Service::new(Arc::new(db), Arc::new(rpc));
