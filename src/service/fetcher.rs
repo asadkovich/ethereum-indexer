@@ -48,9 +48,10 @@ impl Fetcher {
                 .await
                 .unwrap();
 
-            if block.is_some() {
-                thread::scope(|s| {
-                    s.spawn(|| self.processor.process_block(block.unwrap()));
+            if let Some(block) = block {
+                tokio::spawn({
+                    let processor = self.processor.clone();
+                    async move { processor.process_block(block).await }
                 });
             }
         }

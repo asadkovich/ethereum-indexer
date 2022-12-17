@@ -29,9 +29,10 @@ impl Subscriber {
             let block_id = BlockId::Number(BlockNumber::Number(header.number.unwrap()));
             let block = self.rpc.eth().block_with_txs(block_id).await?;
 
-            if block.is_some() {
-                thread::scope(|s| {
-                    s.spawn(|| self.processor.process_block(block.unwrap()));
+            if let Some(block) = block {
+                tokio::spawn({
+                    let processor = self.processor.clone();
+                    async move { processor.process_block(block).await }
                 });
             }
         }
