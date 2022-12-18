@@ -11,14 +11,13 @@ impl Repository {
         sqlx::query(
             "
                 INSERT INTO blocks (
-                    hash, parent_hash, number, timestamp, nonce, difficulty, gas_limit,
-                    gas_used, miner, extra_data, logs_bloom, transactions_root,
-                    state_root, receipts_root, sha3_uncles, size, total_difficulty,
-                    uncles
+                    \"hash\", \"parent_hash\", \"number\", \"ts\", \"nonce\", \"difficulty\", \"gas_limit\",
+                    \"gas_used\", \"miner\", \"extra_data\", \"logs_bloom\", \"transactions_root\",
+                    \"state_root\", \"receipts_root\", \"sha3_uncles\", \"size\", \"total_difficulty\"
                 )
                 VALUES (
                     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-                    $16, $17, $18
+                    $16, $17
                 )
                 ON CONFLICT (hash) DO NOTHING
             ",
@@ -40,7 +39,6 @@ impl Repository {
         .bind(block.sha3_uncles)
         .bind(block.size)
         .bind(block.total_difficulty)
-        .bind(block.uncles)
         .execute(db)
         .await?;
 

@@ -5,7 +5,7 @@ pub struct Block {
     pub hash: String,
     pub parent_hash: String,
     pub number: i64,
-    pub timestamp: i64,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
     pub nonce: String,
     pub difficulty: String,
     pub gas_limit: i64,
@@ -19,7 +19,6 @@ pub struct Block {
     pub sha3_uncles: Vec<String>,
     pub size: i64,
     pub total_difficulty: String,
-    pub uncles: String,
 }
 
 #[derive(sqlx::FromRow, Debug, Clone)]

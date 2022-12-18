@@ -9,12 +9,13 @@ impl Repository {
         &self,
         db: C,
         txs: Vec<Transaction>,
+        ts: chrono::DateTime<chrono::Utc>,
     ) -> Result<(), crate::Error> {
         let mut builder = QueryBuilder::new(
             "
                 INSERT INTO transactions (
-                    hash, block_hash, block_number, from, to, value, gas, gas_price,
-                    input, nonce, transaction_index, v, r, s
+                    \"hash\", \"block_hash\", \"block_number\", \"from\", \"to\", \"value\", \"gas\", \"gas_price\",
+                    \"input\", \"nonce\", \"transaction_index\", \"v\", \"r\", \"s\", \"ts\"
                 ) ",
         );
 
@@ -33,6 +34,7 @@ impl Repository {
             b.push_bind(tx.v);
             b.push_bind(tx.r);
             b.push_bind(tx.s);
+            b.push_bind(ts);
         });
 
         builder.push("ON CONFLICT (hash) DO NOTHING");

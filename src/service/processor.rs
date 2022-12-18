@@ -1,8 +1,9 @@
 use crate::db::DB;
 use crate::repository::Repository;
 use crate::{entities, Service};
+use chrono::TimeZone;
 use std::sync::Arc;
-use web3::types::{Block, Transaction};
+use web3::types::{Address, Block, Transaction};
 
 #[derive(Debug)]
 pub struct BlockProcessor {
@@ -21,17 +22,22 @@ impl BlockProcessor {
         let block_hash = block.hash.unwrap();
         let block_number = block.number.unwrap().as_u64();
         let parent_hash = block.parent_hash.to_string();
-        let timestamp = block.timestamp.as_u64();
+        let timestamp = chrono::Utc.timestamp_nanos(block.timestamp.as_u64() as i64);
 
         let mut transactions = Vec::new();
 
         for tx in block.transactions {
+            let to_address = match tx.to {
+                Some(address) => address.to_string(),
+                None => "".to_string(),
+            };
+
             let transaction = entities::Transaction {
                 hash: tx.hash.to_string(),
                 block_hash: tx.block_hash.unwrap().to_string(),
                 block_number: tx.block_number.unwrap().as_u64(),
                 from: tx.from.unwrap().to_string(),
-                to: tx.to.unwrap().to_string(),
+                to: to_address,
                 value: tx.value.to_string(),
                 gas: tx.gas.as_u64() as u128,
                 gas_price: tx.gas_price.to_string(),
@@ -50,7 +56,7 @@ impl BlockProcessor {
             hash: block_hash.to_string(),
             parent_hash,
             number: block_number as i64,
-            timestamp: timestamp as i64,
+            timestamp,
             nonce: block.nonce.unwrap().to_string(),
             difficulty: block.difficulty.to_string(),
             gas_limit: block.gas_limit.as_u64() as i64,
@@ -64,12 +70,14 @@ impl BlockProcessor {
             sha3_uncles: block.uncles.iter().map(|u| u.to_string()).collect(),
             size: block.size.unwrap().as_u64() as i64,
             total_difficulty: block.total_difficulty.unwrap().to_string(),
-            uncles: serde_json::to_string(&block.uncles).unwrap(),
         };
 
         let mut tx = self.db.begin().await.unwrap();
 
-        self.repo.save_txs(&mut tx, transactions).await.unwrap();
+        self.repo
+            .save_txs(&mut tx, transactions, block.timestamp)
+            .await
+            .unwrap();
         self.repo.save_block(&mut tx, block).await.unwrap();
 
         tx.commit().await.unwrap();
