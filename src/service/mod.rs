@@ -3,11 +3,13 @@ mod processor;
 mod subscriber;
 
 use crate::db::DB;
+use crate::metrics;
 use crate::rpc::RPC;
 use crate::service::fetcher::Fetcher;
 use crate::service::processor::BlockProcessor;
 use crate::service::subscriber::Subscriber;
 use std::sync::Arc;
+use tokio::task;
 
 /// Service is responsible for fetching historical blocks
 /// and subscribing to new blocks.
@@ -15,8 +17,8 @@ use std::sync::Arc;
 pub struct Service {
     processor: Arc<BlockProcessor>,
     rpc: Arc<RPC>,
-    fetch_tasks: Vec<tokio::task::JoinHandle<Result<(), crate::Error>>>,
-    subscribe_task: Option<tokio::task::JoinHandle<Result<(), crate::Error>>>,
+    fetch_tasks: Vec<task::JoinHandle<Result<(), crate::Error>>>,
+    subscribe_task: Option<task::JoinHandle<Result<(), crate::Error>>>,
 }
 
 impl Service {
@@ -31,20 +33,40 @@ impl Service {
         }
     }
 
-    pub fn start_fetching(&mut self, from: Option<i64>, to: Option<i64>) {
+    pub async fn start_fetching(
+        &mut self,
+        from_block: Option<i64>,
+        to_block: Option<i64>,
+    ) -> Result<(), crate::Error> {
+        let from = match from_block {
+            Some(block) => block,
+            None => self.rpc.eth().block_number().await?.as_u64() as i64,
+        };
+        let to = match to_block {
+            Some(block) => block,
+            None => 0,
+        };
+
+        metrics::FROM_BLOCK.set(from);
+        metrics::TO_BLOCK.set(to);
+
         // TODO: maybe we should split the blocks range into smaller chunks.
         let fetch_task = tokio::spawn({
             let fetcher = Fetcher::new(self.processor.clone(), self.rpc.clone(), from, to);
             async move { fetcher.run().await }
         });
         self.fetch_tasks.push(fetch_task);
+
+        Ok(())
     }
 
-    pub fn start_subscribing(&mut self) {
+    pub fn start_subscribing(&mut self) -> Result<(), crate::Error> {
         let subscribe_task = tokio::spawn({
             let subscriber = Subscriber::new(self.processor.clone(), self.rpc.clone());
             async move { subscriber.run().await }
         });
         self.subscribe_task = Some(subscribe_task);
+
+        Ok(())
     }
 }

@@ -1,3 +1,4 @@
+mod count;
 mod save_block;
 mod save_txs;
 

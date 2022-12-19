@@ -61,17 +61,17 @@ struct Args {
     #[arg(long, default_value_t = true)]
     metrics: bool,
 
-    /// Specifies the metrics port (:9090 by default).
-    #[arg(long, default_value = ":9090")]
+    /// Specifies the metrics port (0.0.0.0:7070 by default).
+    #[arg(long, default_value = "0.0.0.0:7070")]
     metrics_addr: String,
 }
 
 #[tokio::main]
 async fn main() {
-    let args = Args::parse();
+    let args: Args = Args::parse();
 
-    let db = db::connect(&args.dsn, args.pool_size).await.unwrap();
-    let rpc = rpc::connect(&args.rpc_url).await.unwrap();
+    let db = Arc::new(db::connect(&args.dsn, args.pool_size).await.unwrap());
+    let rpc = Arc::new(rpc::connect(&args.rpc_url).await.unwrap());
 
     if args.migrate {
         db::migrate(&db).await.unwrap();
@@ -82,17 +82,25 @@ async fn main() {
         let metrics_addr =
             std::net::SocketAddr::from_str(&args.metrics_addr).expect("Invalid metrics address");
         metrics::start_prometheus_server(metrics_addr);
+        metrics::register();
+
+        tokio::task::spawn(metrics::start_data_collector(db.clone()));
+
+        log::info!(
+            "[OK] Started Prometheus HTTP endpoint at {}",
+            args.metrics_addr
+        );
     }
 
-    let mut service = Service::new(Arc::new(db), Arc::new(rpc));
+    let mut service = Service::new(db, rpc);
 
     if args.fetch {
-        service.start_fetching(args.from, args.to);
+        service.start_fetching(args.from, args.to).await.unwrap();
         log::info!("[OK] Fetcher started");
     }
 
     if args.subscribe {
-        service.start_subscribing();
+        service.start_subscribing().unwrap();
         log::info!("[OK] Subscriber started");
     }
 
