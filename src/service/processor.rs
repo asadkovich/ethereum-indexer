@@ -74,10 +74,15 @@ impl BlockProcessor {
 
         let mut tx = self.db.begin().await.unwrap();
 
-        self.repo
-            .save_txs(&mut tx, transactions, block.timestamp)
-            .await
-            .unwrap();
+        // Some data providers may not store transactions for the old blocks.
+        if transactions.len() > 0 {
+            self.repo
+                .save_txs(&mut tx, transactions, block.timestamp)
+                .await
+                .unwrap();
+        } else {
+            log::info!("[WARN] No transactions in block {}", block_number);
+        }
         self.repo.save_block(&mut tx, block).await.unwrap();
 
         tx.commit().await.unwrap();

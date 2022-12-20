@@ -32,9 +32,7 @@ impl Subscriber {
             if let Some(block) = block {
                 tokio::spawn({
                     let processor = self.processor.clone();
-                    async move {
-                        processor.process_block(block).await;
-                    }
+                    async move { processor.process_block(block).await }
                 });
             }
         }

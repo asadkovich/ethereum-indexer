@@ -32,7 +32,7 @@ impl Fetcher {
 
     /// Reads blockchain from top to bottom and stores data in the database.
     pub async fn run(&self) -> Result<(), crate::Error> {
-        for num in self.from_block..self.to_block {
+        for num in (self.to_block..self.from_block).rev() {
             let block = self
                 .rpc
                 .eth()
@@ -43,9 +43,7 @@ impl Fetcher {
             if let Some(block) = block {
                 tokio::spawn({
                     let processor = self.processor.clone();
-                    async move {
-                        processor.process_block(block).await;
-                    }
+                    async move { processor.process_block(block).await }
                 });
 
                 metrics::CURRENT_BLOCK.set(num);

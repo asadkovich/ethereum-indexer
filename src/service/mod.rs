@@ -3,6 +3,7 @@ mod processor;
 mod subscriber;
 
 use crate::db::DB;
+use crate::errors::errors::Error::FailedToStartFetcher;
 use crate::metrics;
 use crate::rpc::RPC;
 use crate::service::fetcher::Fetcher;
@@ -17,8 +18,8 @@ use tokio::task;
 pub struct Service {
     processor: Arc<BlockProcessor>,
     rpc: Arc<RPC>,
-    fetch_tasks: Vec<task::JoinHandle<Result<(), crate::Error>>>,
-    subscribe_task: Option<task::JoinHandle<Result<(), crate::Error>>>,
+    fetch_tasks: Vec<task::JoinHandle<()>>,
+    subscribe_task: Option<task::JoinHandle<()>>,
 }
 
 impl Service {
@@ -53,7 +54,7 @@ impl Service {
         // TODO: maybe we should split the blocks range into smaller chunks.
         let fetch_task = tokio::spawn({
             let fetcher = Fetcher::new(self.processor.clone(), self.rpc.clone(), from, to);
-            async move { fetcher.run().await }
+            async move { fetcher.run().await.unwrap() }
         });
         self.fetch_tasks.push(fetch_task);
 
@@ -63,7 +64,7 @@ impl Service {
     pub fn start_subscribing(&mut self) -> Result<(), crate::Error> {
         let subscribe_task = tokio::spawn({
             let subscriber = Subscriber::new(self.processor.clone(), self.rpc.clone());
-            async move { subscriber.run().await }
+            async move { subscriber.run().await.unwrap() }
         });
         self.subscribe_task = Some(subscribe_task);
 
