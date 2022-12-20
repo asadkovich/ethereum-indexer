@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS transactions (
     UNIQUE (hash)
 );
 
+CREATE INDEX IF NOT EXISTS transactions_hash_index ON transactions ("hash");
+CREATE INDEX IF NOT EXISTS transactions_from_index ON transactions ("from");
+CREATE INDEX IF NOT EXISTS transactions_to_index ON transactions ("to");
+
 CREATE TABLE IF NOT EXISTS blocks (
     "hash" varchar(128) primary key,
     "number" integer,
@@ -35,5 +39,9 @@ CREATE TABLE IF NOT EXISTS blocks (
     "gas_limit" integer,
     "gas_used" integer,
     "ts" timestamp with time zone not null,
-    UNIQUE (hash)
+    UNIQUE (hash),
+    UNIQUE (number)
 );
+
+CREATE INDEX IF NOT EXISTS blocks_hash_index ON blocks ("hash");
+CREATE INDEX IF NOT EXISTS blocks_number_index ON blocks ("number");
