@@ -352,7 +352,7 @@
           },
           "mappings": [],
           "max": 100,
-          "min": 10,
+          "min": 0,
           "thresholds": {
             "mode": "percentage",
             "steps": [
@@ -370,7 +370,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -413,6 +413,7 @@
       "type": "bargauge"
     }
   ],
+  "refresh": "5s",
   "schemaVersion": 37,
   "style": "dark",
   "tags": [],
@@ -427,6 +428,6 @@
   "timezone": "",
   "title": "Indexer",
   "uid": "6UVzMPcVz",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
