@@ -48,10 +48,6 @@ struct Args {
     #[arg(long)]
     to: Option<i64>,
 
-    /// Disables or enables verbose mode (true by default).
-    #[arg(long, short, default_value_t = true)]
-    verbose: bool,
-
     /// Database pool size limit.
     /// This is useful when you want to limit the number of connections to the database.
     #[arg(long, default_value_t = 30)]
